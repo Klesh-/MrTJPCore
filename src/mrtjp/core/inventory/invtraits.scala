@@ -20,6 +20,11 @@ trait TInventory extends IInventory
 
     private val storage = new Array[ItemStack](size)
 
+    private def getStackIfDefined(slot:Int): ItemStack =
+    {
+        if (storage.isDefinedAt(slot)) storage(slot) else null
+    }
+
     override def getSizeInventory = storage.length
     override def getInventoryStackLimit = stackLimit
     override def hasCustomInventoryName = true
@@ -30,10 +35,10 @@ trait TInventory extends IInventory
     override def openInventory(){}
     override def closeInventory(){}
 
-    override def getStackInSlot(slot:Int) = storage(slot)
+    override def getStackInSlot(slot:Int) = getStackIfDefined(slot)
     override def getStackInSlotOnClosing(slot:Int):ItemStack =
     {
-        val stack = storage(slot)
+        val stack = getStackIfDefined(slot)
         if (stack == null) return null
         storage(slot) = null
         markDirty()
@@ -42,13 +47,15 @@ trait TInventory extends IInventory
 
     override def setInventorySlotContents(slot:Int, item:ItemStack)
     {
-        storage(slot) = item
-        markDirty()
+        if (storage.isDefinedAt(slot)) {
+            storage(slot) = item
+            markDirty()
+        }
     }
 
     override def decrStackSize(slot:Int, count:Int):ItemStack =
     {
-        val stack = storage(slot)
+        val stack = getStackIfDefined(slot)
         if (stack == null) return null
 
         if (stack.stackSize > count)
